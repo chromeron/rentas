@@ -25,7 +25,7 @@ SECRET_KEY = '7k$4f*+(0_h7e_27cq9ta^o)w_b#o4-(5wpj+xxkoh!u(%=cv_'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['127.0.0.1:8000','rentas-comude.herokuapp.com']
 
 
 # Application definition
