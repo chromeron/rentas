@@ -1,0 +1,171 @@
+{% extends 'unidad/base.html'%}
+{% block content %}
+
+
+				{% if cancha %}
+					<div class="columns has-text-centered-mobile has-background-white">
+						<div class="column is-1">
+							<img src="../../media/images/unidad_deportiva.png" alt="ícono unidad deportiva">
+						</div>
+						<div class="column">
+								<p>Agenda de la cancha <strong>{{cancha.clave_cancha}}</strong></p>
+								<p>de tipo <strong>{{cancha.tipo_cancha}}</strong>, ubicada internamente en <strong>({{cancha.ubicacion_interna}})</strong></p>
+								<p>en el centro deportivo <strong>{{cancha.unidad.nombre}}</strong></p>
+						</div>
+					</div>
+					<br>
+					<div id="app">
+						<div class="columns has-background-white">
+							<div class="column is-one-third">
+				      	<v-date-picker is-inline is-expanded :mode='mode' v-model='selectedDate' @click="seleccionarFecha" tint-color="#209CEE" :theme-styles='themeStyles'></v-date-picker>
+							</div>
+							<div class="column">
+								<p class="is-5" v-html="mensaje">[[mensaje]]</p>
+								<br>
+
+										<div class="columns is-multiline" v-if="selectedDate">
+
+											<div v-for="hora in horas" class="column is-3 is-mobile">
+												<b-field>
+													<b-checkbox-button
+															:native-value="hora" v-model="horas_seleccionadas"
+							                type="is-info" v-on:click="ordenar">
+							                <b-icon icon="close"></b-icon>
+							                <span>[[hora]]:00 - [[hora+1]]:00</span>
+							            </b-checkbox-button>
+												</b-field>
+											</div>
+										</div>
+
+
+							</div>
+
+						</div>
+						<div class="columns has-background-info has-text-white-bis" v-if="horas_seleccionadas.length > 0">
+							<div class="column is-4">
+								<p class="is-size-4"><strong class="has-text-white-bis">Horas seleccionadas</strong></p>
+								<br>
+								<ul>
+									<li v-for="hora in horas_seleccionadas">* De [[hora]]:00 a [[hora+1]]:00</li>
+								</ul>
+							</div>
+							<div class="column is-4" >
+								<p class="is-size-4"><strong class="has-text-white-bis">Costos</strong></p>
+								<br>
+								<p> Costo por hora: $ {{cancha.tipo_cancha.costo_particular.costo}}.00</p>
+								<p> Cantidad de horas: [[horas_seleccionadas.length]]</p>
+							</div>
+							<div class="column is-4">
+								<p class="is-size-4"><strong class="has-text-white-bis">Total:</strong> $[[total]].00</p>
+								<br>
+								<form action="{% url 'permiso_particulares' %}" method="post">
+									{% csrf_token %}
+									<input type="hidden" name="horas" :value="horas_seleccionadas">
+									<input type="hidden" name="cancha" value="{{cancha.id}}">
+									<input type="hidden" name="fecha" :value="selectedDate">
+									<b-field>
+					            <b-input placeholder="Nombre completo para generar permiso"></b-input>
+					        </b-field>
+									<div class="field">
+					            <b-switch value="true" v-model="tyc"
+					            type="is-success">
+					                Acepto los términos y condiciones
+					            </b-switch>
+					        </div>
+									<input v-if="tyc" type="submit" value="Generar pago y permiso" class="button is-link is-inverted">
+								</form>
+							</div>
+
+						</div>
+					</div>
+					<script src='https://unpkg.com/v-calendar'></script>
+
+					<script type="text/javascript">
+					   var cancha = "{{cancha.id}}";
+						 var costo = "{{cancha.tipo_cancha.costo_particular.costo}}";
+					</script>
+					<script>
+						Vue.use(Buefy.default)
+
+			      var vm = new Vue({
+			        el: '#app',
+							delimiters: ['[[', ']]'],
+			        data: {
+			          // Data used by the date picker
+			          mode: 'single',
+			          mensaje: "Seleccione una fecha para mostrar las horas disponibles",
+								horas: [7,8,9,10,11,12,13,14,15,16,17,18,19],
+								newHoras: [],
+								tyc: false,
+								total: 0,
+								horas_seleccionadas: [],
+								selectedDate: null,
+								fechaFormato: null,
+								themeStyles: {
+										wrapper: {
+						          background: 'linear-gradient(to bottom right, #A3CEF1, #209CEE)',
+						          color: '#fafafa',
+						          border: '0',
+						          boxShadow: '0 4px 8px 0 rgba(0, 0, 0, 0.14), 0 6px 20px 0 rgba(0, 0, 0, 0.13)',
+						          borderRadius: '5px',
+						        },
+										weekdays: {
+						          color: '#274C77', // New color
+						          fontWeight: '600', // And bolder font weight
+						        },
+
+					        }
+					      },
+								computed:{
+									seleccionarFecha: function(){
+											if(this.selectedDate == null){
+												return this.mensaje
+											}else{
+												this.horas = [7,8,9,10,11,12,13,14,15,16,17,18,19];
+												this.horas_seleccionadas = [];
+												this.tyc = false;
+												moment.locale("es");
+												this.fechaFormato = moment(this.selectedDate).format("YYYY-MM-DD");
+												this.mensaje = "Selecciona las horas para rentar el día <strong>" + moment(this.selectedDate).format("LL") +"</strong>";
+												consulta = "http://127.0.0.1:8000/canchas/"+cancha+"/detalles/"+this.fechaFormato;
+												//console.log (consulta);
+												var vm= this;
+												axios.get(consulta)
+												.then(function (response){
+													newHoras = response.data;
+													for(var h=0; h < newHoras.length; h++){
+														//console.log(newHoras[h].hora);
+														//console.log(vm.horas);
+														for(var i=0; i < vm.horas.length; i++){
+															 if(vm.horas[i] === newHoras[h].hora){
+																	 vm.horas.splice(i,1);
+																	 break;
+															 }
+														}
+													}
+												})
+												.catch(function(error){
+													vm.horas = "Ocurrio un error" + error ;
+												})
+												return this.mensaje
+											}
+
+
+									},
+									ordenar: function(){
+										this.total = this.horas_seleccionadas.length * costo;
+										return this.horas_seleccionadas.sort(function(a, b){return a-b});
+
+									}
+
+								}
+
+
+			      })
+			    </script>
+				{% else %}
+					<div class="column">
+						<p>No existe la cancha seleccionada</p>
+					</div>
+				{% endif %}
+{% endblock %}

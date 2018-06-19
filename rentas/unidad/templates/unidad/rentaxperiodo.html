@@ -1,0 +1,499 @@
+{% extends 'unidad/base.html'%}
+{% block content %}
+
+
+				{% if cancha %}
+				<div id="app">
+					<div class="columns has-text-centered-mobile has-background-white">
+						<div class="column is-1">
+							<img src="../../media/images/unidad_deportiva.png" alt="ícono unidad deportiva">
+						</div>
+						<div class="column is-two-thirds">
+								<p>Agenda de la cancha <strong>{{cancha.clave_cancha}}</strong></p>
+								<p>de tipo <strong>{{cancha.tipo_cancha}}</strong>, ubicada internamente en <strong>({{cancha.ubicacion_interna}})</strong></p>
+								<p>en el centro deportivo <strong>{{cancha.unidad.nombre}}</strong></p>
+						</div>
+						<div class="column">
+									<b-select placeholder="Seleccionar Liga o Escuela..." v-model="liga_escuela">
+										<option value="">Seleccionar liga o escuela...</option>
+										<option value="liga">Liga</option>
+										<option value="escuela">Escuela</option>
+									</b-select>
+						</div>
+					</div>
+					<br>
+
+						<div class="columns has-background-white" v-if="liga_escuela">
+							<div class="column">
+								<div>
+									<span v-if="liga_escuela == 'liga'">
+										<b-field label="Categoría:">
+											<b-select placeholder="Seleccionar categoría..." v-model="categoria_liga">
+												<option value="">Seleccionar categoria...</option>
+												<option value="libre">Libre</option>
+												<option value="jyf">Juvenil y femenil</option>
+												<option value="infantil">Infantil</option>
+											</b-select>
+										</b-field>
+									</span>
+									<b-field label="Trimestre:">
+										<b-select class="" name="trimestre" v-model="trimestre">
+											<option value="1">1er Trimestre (Enero - Marzo)</option>
+											<option value="2">2do Trimestre (Abril - Junio)</option>
+											<option value="3">3er Trimestre (Julio - Septiembre)</option>
+											<option value="4">4to Trimestre (Octubre - Diciembre)</option>
+										</b-select>
+									</b-field>
+								</div><br>
+
+								<div v-if="trimestre" class="has-background-light">
+									<section class="section">
+											<b-field label="Periodo seleccionado:">
+											</b-field>
+											Del [[fecha_inicio_formato]] <br> al [[fecha_final_formato]]
+									</section>
+								</div>
+				      </div>
+							<div class="column">
+								<div v-if="trimestre">
+									<b-field label="Fecha inicial de contrato:">
+											<b-select class="" name="" placeholder="Seleccionar inicio de contrato" v-model="fechaInicialContrato">
+												<option v-for="fecha in fechas"  :value="fecha">[[fecha]]</option>
+											</b-select>
+									</b-field>
+								</div>
+								<br>
+								<div v-if="liga_escuela == 'liga'">
+									<br><br><br>
+								</div>
+								<div v-if="fechaInicialContrato" class="has-background-light">
+									<section class="section">
+										<b-field label="Contrato a partir de:">
+										</b-field>
+										<p>[[fechaInicialContrato]]</p>
+										<br>
+									</section>
+
+								</div>
+							</div>
+							<div class="column">
+								<div v-if="fechaInicialContrato">
+									<b-field label="Seleccionar días:">
+									</b-field><br><br>
+									<b-checkbox v-model="semana" v-on:click="ordenar"
+			                native-value="1">
+			                Lunes
+			            </b-checkbox><br>
+									<b-checkbox v-model="semana" v-on:click="ordenar"
+			                native-value="2">
+			                Martes
+			            </b-checkbox><br>
+									<b-checkbox v-model="semana" v-on:click="ordenar"
+			                native-value="3">
+			                Miércoles
+			            </b-checkbox><br>
+									<b-checkbox v-model="semana" v-on:click="ordenar"
+			                native-value="4">
+			                Jueves
+			            </b-checkbox><br>
+									<b-checkbox v-model="semana" v-on:click="ordenar"
+			                native-value="5">
+			                Viernes
+			            </b-checkbox><br>
+									<b-checkbox v-model="semana" v-on:click="ordenar"
+			                native-value="6">
+			                Sábados
+			            </b-checkbox><br>
+									<b-checkbox v-model="semana" v-on:click="ordenar"
+			                native-value="0">
+			                Domingos
+			            </b-checkbox><br>
+								</div>
+							</div>
+							<div class="column">
+								<div v-if="semana.length > 0">
+									<b-field label="Seleccionar horario"></b-field><br><br>
+									 <b-field label="De ">
+										 <b-select class="" name="hora_inicio" v-model="hora_inicio">
+									 			<option v-for="hora in horas" :value="hora">[[hora]]:00 hrs</option>
+									 	 </b-select>
+									 </b-field>
+									 <b-field label="a ">
+										 <b-select class="" name="hora_final" v-model="hora_final">
+										 		<option v-for="i in rango" :value="i">[[i]]:00 hrs</option>
+										 </b-select>
+									 </b-field>
+									 <br><br>
+									 <button class="button is-success" v-if="hora_final" v-on:click="revisar_horas">Revisar disponibilidad</button>
+								</div>
+							</div>
+						</div>
+						<br>
+						<div class="columns has-background-white">
+
+							<div class="column">
+								<p v-html="mensaje"></p>
+								<div v-if="consulta">
+									<p v-html="consulta"></p>
+								</div>
+							</div>
+						</div>
+						<div class="columns has-background-white" v-if="status">
+							<div class="column is-4">
+								<p class="is-size-4"><strong>Desglose:</strong></p>
+								<br>
+								<span v-html="mensaje_horas"></span>
+								<br>
+								<p> Costo por hora: $ [[costo_cancha]].00</p><br>
+							</div>
+							<div class="column is-4">
+								<p class="is-size-4"><strong>Cálculo:</strong></p><br>
+								<p v-html="mensaje_calculo"></p><br>
+								<p class="is-size-4"><strong>Total:</strong> $[[total_fantasia]].00</p>
+							</div>
+							<div class="column is-4">
+											<form>
+												{% csrf_token %}
+												<input type="hidden" name="horas" :value="horas_seleccionadas">
+												<input type="hidden" name="cancha" value="{{cancha.id}}">
+												<input type="hidden" name="fecha" :value="selectedDate">
+												<b-field label="Selecciona usuario" class="has-text-white">
+													<select v-model="usuario" class="select-usuario">
+														{% for usuario in usuarios %}
+															<option value="{{usuario.id}}">{{usuario.first_name}} {{usuario.last_name}}</option>
+														{%endfor %}
+													</select>
+												</b-field>
+												<b-field label="Acepto los términos y condiciones" v-if="usuario">
+														<b-switch value="true" v-model="tyc" type="is-success">
+														</b-switch>
+												</b-field>
+												<div class="control" v-if="tyc">
+													<button class="button is-success is-medium"
+								            	@click.prevent="apartarHorarios">
+								            	Apartar horarios
+								        	</button>
+
+								        	<b-modal :active.sync="apartar" has-modal-card>
+								            	<modal-form v-bind="apartarHorariosProps"></modal-form>
+								        	</b-modal>
+												</div>
+											</form>
+
+								</div>
+
+						</div>
+					</div>
+
+					<script type="text/javascript">
+					   var cancha = "{{cancha.id}}";
+						 var costo_escuela = "{{cancha.costo_escuela.costo}}";
+						 var costo_liga_libre= "{{cancha.costo_liga_libre.costo}}";
+						 var costo_liga_jyf= "{{cancha.costo_liga_jyf.costo}}";
+						 var costo_liga_infantil= "{{cancha.costo_liga_infantil.costo}}";
+						 var csrftoken = Cookies.get('csrftoken');
+
+					</script>
+					<script>
+						Vue.use(Buefy.default)
+
+						const ModalForm = {
+						 props: ['otros_horarios','url'],
+						 template: `
+									 <form>
+											 <div class="modal-card" style="width: auto">
+													 <header class="modal-card-head">
+															 <p class="modal-card-title">
+															 <i class="is-success check-circle"></i> Horas agendadas!!</p>
+													 </header>
+													 <section class="modal-card-body">
+													 		 <i class="is-success check-circle"></i>
+															 <b-field label="Agregar más horarios?">
+																 <b-select v-model="otros_horarios">
+																	 <option value="No">No, revisar agenda</option>
+																	 <option value="Si_misma">Sí, en la misma cancha</option>
+																	 <option value="Si_otro">Sí, otra cancha</option>
+																 </b-select>
+															 </b-field>
+													 </section>
+													 <footer class="modal-card-foot">
+													 		<a :href="url" class="button is-primary">OK</a>
+													 </footer>
+											 </div>
+									 </form>
+							 `,
+							 watch:{
+								 otros_horarios: function(){
+									 if(this.otros_horarios == "No"){
+										 this.url = "Aun no se"
+									 }else if(this.otros_horarios == "Si_misma"){
+										 console.log("Si, misma");
+										 this.url = "http://127.0.0.1:8000/canchas/rentaxperiodo/"+cancha;
+									 }else if(this.otros_horarios == "Si_otro"){
+										 console.log("Si, otro");
+										 this.url = "http://127.0.0.1:8000/canchas/";
+									 }
+
+
+
+								 }
+							 }
+					 }
+
+			      var vm = new Vue({
+			        el: '#app',
+							delimiters: ['[[', ']]'],
+			        data: {
+			          // Data used by the date picker
+			          mode: 'multiple',
+								fecha_inicio: null,
+								fecha_final: null,
+								fecha_inicio_formato: null,
+								fecha_final_formato: null,
+								hora_inicio: null,
+								hora_final: null,
+								n: null,
+								consulta: null,
+								liga_escuela: null,
+								dias:[],
+								semana:[],
+								dias_formato: [],
+								fechaContrato: null,
+								fechas:[],
+								fechaInicialContrato: null,
+								trimestre: null,
+			          mensaje: "",
+								horas: [7,8,9,10,11,12,13,14,15,16,17,18,19],
+								newHoras: [],
+								tyc: false,
+								total: 0,
+								horas_seleccionadas: [],
+								selectedDate: null,
+								fechaFormato: null,
+								mensaje_horas: "",
+								status: false,
+								calculo_horas: 0,
+								categoria_liga: null,
+								costo_cancha: 0,
+								total_fantasia: 0,
+								cantidad_meses: 0,
+								mensaje_calculo: "",
+								apartar: false,
+								usuario: null,
+								apartarHorariosProps: {
+										otros_horarios: "",
+										url: "",
+								}
+							},
+							components:{
+								'modal-form': ModalForm
+							},
+									watch: {
+										trimestre: function(){
+
+											this.fechas = [];
+											this.fechaInicialContrato = null;
+
+											if(this.trimestre == 1 ){
+												this.fecha_inicio = moment().month(0).startOf('M');
+												this.fecha_final = moment().month(2).endOf('M');
+											}else if(this.trimestre == 2 ){
+												this.fecha_inicio = moment().month(3).startOf('M');
+												this.fecha_final = moment().month(5).endOf('M');
+											}else if(this.trimestre == 3 ){
+												this.fecha_inicio = moment().month(6).startOf('M');
+												this.fecha_final = moment().month(8).endOf('M');
+											}else if(this.trimestre == 4 ){
+												this.fecha_inicio = moment().month(9).startOf('M');
+												this.fecha_final = moment().month(11).endOf('M');
+											}
+
+											this.fecha_inicio_formato = moment(this.fecha_inicio).format("LL");
+											this.fecha_final_formato = moment(this.fecha_final).format("LL");
+
+											var temp_fecha = moment(this.fecha_inicio);
+											for(var i=0; i < 3; i++){
+
+												if(i == 0){
+													this.fechas.push(moment(temp_fecha).format("YYYY-MM-DD"));
+												}else{
+													temp_fecha = moment(temp_fecha).endOf('M').add(1,'d');
+													this.fechas.push(moment(temp_fecha).format("YYYY-MM-DD"));
+												}
+											}
+										},
+
+										hora_inicio: function(){
+													this.n = this.hora_inicio - 6;
+										}
+									},
+									computed: {
+										ordenar: function(){
+											var arrayDias = moment(moment(this.fechaInicialContrato).subtract(1,'d')).weekdaysInBetween(moment(this.fecha_final).add(1,'d'), this.semana);
+											//console.log(arrayDias);
+											this.dias_formato = [];
+											for(dia in arrayDias){
+												this.dias_formato.push(moment(arrayDias[dia]._d).format("YYYY-MM-DD"))
+											}
+											return this.semana.sort(function(a, b){return a-b});
+
+										},
+										rango: function(){
+											return this.horas.slice( this.n , 19 );
+										},
+
+
+									},
+									methods: {
+										revisar_horas: function(event) {
+													this.mensaje_horas = "";
+													this.calculo_horas = 0;
+
+													calculo_horas = this.dias_formato.length * (this.hora_final - this.hora_inicio);
+
+													var numero_mes = moment(this.fechaInicialContrato).month()+1;
+													var semanas_restantes = numero_mes % 3;
+													var horas_semana = (this.semana.length * (this.hora_final - this.hora_inicio));
+
+
+
+													if(this.liga_escuela == "escuela"){
+														this.total = costo_escuela * calculo_horas;
+														this.costo_cancha = costo_escuela;
+													}else{
+														if(this.categoria_liga == "libre"){
+															console.log("libre");
+															this.total = costo_liga_libre * calculo_horas;
+															this.costo_cancha = costo_liga_libre;
+														}else if(this.categoria_liga == "jyf"){
+															console.log("jyf");
+															this.total = costo_liga_jyf * calculo_horas;
+															this.costo_cancha = this.costo_liga_jyf;
+														}else if(this.categoria_liga == "infantil"){
+															console.log("infantil");
+															this.total = costo_liga_infantil * calculo_horas;
+															this.costo_cancha = costo_liga_infantil;
+														}
+													}
+
+													this.total_fantasia = (this.costo_cancha * horas_semana)*4;
+
+													console.log(this.total_fantasia);
+
+													if(semanas_restantes == 0){
+														this.cantidad_meses = 1;
+														this.total_fantasia = this.total_fantasia * 1;
+													}else if(semanas_restantes == 1){
+														this.cantidad_meses = 3;
+														this.total_fantasia = this.total_fantasia * 3;
+													}else if(semanas_restantes == 2){
+														this.cantidad_meses = 2;
+														this.total_fantasia = this.total_fantasia * 2;
+													}
+
+													this.mensaje_horas = "<p>Cantidad de horas: "+(this.hora_final - this.hora_inicio)+"</p><p>Días a la semana: "+this.semana.length+"</p><p>Cantidad de semanas al mes: 4 </p><p>Cantidad de meses: "+this.cantidad_meses+" </p>";
+													this.mensaje_calculo = (this.hora_final - this.hora_inicio)+" (hrs.) X "+this.semana.length+" (días a la semana) X 4 (semanas al mes) X "+this.cantidad_meses+" (meses) X "+this.costo_cancha+"(costo canacha)";
+
+													var vm = this;
+													vm.consulta = "Revisando...";
+													vm.status = false;
+													setTimeout(() => {
+														axios({
+															method : 'post',
+															url : 'http://127.0.0.1:8000/canchas/check_horarios',
+															data : {
+																dias_formato: vm.dias_formato,
+																hora_inicio: vm.hora_inicio,
+																hora_final: vm.hora_final,
+																cancha: cancha
+															},
+															headers : { "X-CSRFToken" : csrftoken }
+
+													  })
+													  .then(function (response) {
+															var horas_conflicto = response.data
+															if(horas_conflicto.length > 0){
+																vm.consulta = "";
+																for (x in horas_conflicto){
+																	//console.log(x);
+																	if(x == 0){
+																		vm.consulta = "<div class='columns is-size-3 has-background-danger has-text-white'><div class='column'>Horarios en conflicto: </div></div><div class='columns'><div class='column'>";
+																	}
+																	vm.consulta += "<p> "+moment(horas_conflicto[x].dia).format("LL")+ " a las "+horas_conflicto[x].hora+" hrs. </p>";
+																}
+																vm.consulta += "</div></div>";
+															}else{
+																vm.status = true;
+																vm.consulta = "<div class='columns is-size-3 has-background-success has-text-white'><div class='column'>Horarios disponibles</div></div>";
+															}
+
+
+
+													  })
+													  .catch(function (error) {
+
+													    console.log(error);
+															console.log("No OK");
+															vm.consulta = "No OK";
+													  });
+
+													}, 400);
+												//console.log(csrftoken);
+												//$('.select-usuario').select2();
+										},
+										apartarHorarios: function(){
+											console.log("aparta horarios");
+											var vm = this;
+											axios({
+													method : 'post',
+													url : 'http://127.0.0.1:8000/canchas/agendar_horarios',
+													data : {
+														dias_formato: vm.dias_formato,
+														hora_inicio: vm.hora_inicio,
+														hora_final: vm.hora_final,
+														cancha: cancha,
+														usuario: vm.usuario,
+														tipo_renta: vm.liga_escuela,
+														status: "reservada",
+														costo: vm.total_fantasia,
+														detalles: "ninguno aun",
+														especial: "no",
+														trimestre: vm.trimestre,
+														horas_totales: vm.calculo_horas
+													},
+													headers: { "X-CSRFToken" : csrftoken }
+
+												})
+												.then(function (response) {
+													var horas_conflicto = response.data
+													if(horas_conflicto.length > 0){
+
+													}else{
+
+													}
+													console.log(response);
+													//console.log("OK");
+
+												})
+												.catch(function (error) {
+
+													console.log(error);
+													console.log("No OK");
+													vm.consulta = "No OK";
+												});
+
+
+											this.apartar = true;
+										}
+
+									}
+							})
+
+
+			    </script>
+				{% else %}
+					<div class="column">
+						<p>No existe la cancha seleccionada</p>
+					</div>
+				{% endif %}
+{% endblock %}

@@ -1,0 +1,39 @@
+{% extends 'unidad/base.html'%}
+{% block content %}
+
+		<div class="columns">
+			<div class="column is-mobile is-one-fifths-tablet has-text-centered-mobile">
+					<img src="{{cancha_tipo.imagen.url}}" width="200">
+			</div>
+			<div class="column is-mobile is-four-fifths-tablet is-size-4 has-text-centered-mobile">
+				Las siguientes canchas de  "{{cancha_tipo.tipo|lower}}" están disponibles para ti: <br>
+				<strong class="is-size-6">$ {{cancha_tipo.costo_particular.costo |stringformat:"1.2f"}} (costo por hora)</strong>
+			</div>
+		</div>
+	{% for cancha in canchas %}
+	<div class="card">
+		<div class="card-content">
+			<div class="columns">
+					<div class="column has-text-centered-mobile is-three-fifths">
+								<span class="is-size-6"><strong> {{cancha.unidad.nombre}} </strong></span>
+								<span> ({{cancha.ubicacion_interna}})</span>
+					</div>
+					<div class="column has-text-centered">
+						  <a href="../rentaxdia/{{cancha.id}}" class="button">
+								<i class="material-icons">event</i>
+								<span class="align-top"> Rentar por horario</span>
+							</a>
+					</div>
+					<div class="column has-text-centered">
+						  <a href="../rentaxperiodo/{{cancha.id}}" class="button">
+								<i class="material-icons">swap_horiz</i>
+								<span class="align-top"> Rentar por periodo</span>
+							</a>
+					</div>
+				</div>
+		</div>
+	</div>
+	<br>
+{% endfor %}
+
+{% endblock %}

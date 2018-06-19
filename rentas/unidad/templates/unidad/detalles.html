@@ -1,0 +1,51 @@
+{% extends 'unidad/base.html'%}
+{% block content %}
+
+		<div class="columns has-text-centered-mobile">
+				{% if canchas %}
+
+					<div class="column is-1">
+						<img src="../media/images/unidad_deportiva.png" alt="ícono unidad deportiva">
+					</div>
+					<div class="column">
+							<p>El centro deportivo <strong> </strong><br>
+							tiene la(s) siguiente(s) cancha(s) disponible(s) para ti: <br>
+							</p>
+					</div>
+				{% else %}
+					<div class="column">
+						<p>No existe canchas</p>
+					</div>
+				{% endif %}
+		</div>
+	{% for cancha in canchas %}
+	<div class="card">
+		<div class="card-content">
+			<div class="columns has-text-centered-mobile">
+					<div class="column is-two-fifths">
+								<span class="is-size-6">
+									<strong> {{cancha.hora}}</strong>
+								</span>
+								<span> ({{cancha.renta.espacio_id}})</span>
+					</div>
+					<div class="column is-one-fifth">
+						${{cancha.tipo_cancha.costo_particular.costo | stringformat:"1.2f"}}
+					</div>
+					<div class="column has-text-centered-mobile">
+						  <a href="rentaxdia/{{cancha.id}}" class="button">
+								<i class="material-icons">event</i>
+								<span class="align-top"> Rentar por horario</span>
+							</a>
+
+						  <a href="rentaxperiodo/{{cancha.id}}" class="button">
+								<i class="material-icons">swap_horiz</i>
+								<span class="align-top"> Rentar por periodo</span>
+							</a>
+					</div>
+				</div>
+		</div>
+	</div>
+	<br>
+{% endfor %}
+
+{% endblock %}

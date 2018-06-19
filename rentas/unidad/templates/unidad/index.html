@@ -1,0 +1,66 @@
+{% extends 'unidad/base.html'%}
+{% block content %}
+	<h3 class="is-size-5">Selecciona la unidad o tipo de cancha que deseas rentar</h3><br>
+	<div class="card" card-color="is_dark">
+		<div class="card-content">
+			<div id="app">
+				<div class="field is-grouped">
+					<div class="control is-expanded">
+					  <div class="select is-rounded is-fullwidth">
+					    <select v-model="seleccionado">
+					      <option :value="null" disabled>Selecciona una unidad para ver las canchas disponibles...</option>
+								{% for unidad in unidades_list %}
+									<option value="{{unidad.id}}">{{unidad.nombre}}</option>
+								{% endfor %}
+					    </select>
+					  </div>
+					</div>
+					<div class="control">
+				    <a :href="seleccionado" class="button is-info">
+							Ver canchas [[nombre_cancha]]
+						</a>
+				  </div>
+				</div>
+			</div>
+
+		</div>
+	</div>
+	<br><br>
+	<div class="columns is-tablet">
+
+		{% for tipo_cancha in tipo_cancha_list %}
+		<div class="column">
+			<div class="card">
+					<div class="card-image">
+					  <img class="card-img-top" src="{{tipo_cancha.imagen.url}}">
+					</div>
+					<div class="card-content">
+							<h6 class="title is-5">{{tipo_cancha.tipo}}</h6>
+					    <p>$ {{tipo_cancha.costo_particular.costo | stringformat:"1.2f"}} (costo por hora)</p>
+
+					     <br>
+							<a href="tipo/{{tipo_cancha.id}}" class="button is-info">Ver listado</a>
+					</div>
+			</div>
+		</div>
+		{% endfor %}
+	</div>
+
+
+	<script>
+	var app = new Vue({
+		delimiters: ['[[', ']]'],
+		el: '#app',
+	  data: {
+	    seleccionado: '',
+	  },
+		computed: {
+			nombre_cancha: function(){
+				return this.seleccionado
+			}
+		}
+	})
+
+	</script>
+
+{% endblock %}
